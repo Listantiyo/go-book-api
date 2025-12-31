@@ -26,6 +26,7 @@ A production-ready REST API for managing books and book borrowing system built w
   - Dependency Injection
   - Interface-based design for testability
   - Comprehensive unit tests
+  - Graceful shutdown with signal handling
 
 ## 🛠️ Tech Stack
 
@@ -313,9 +314,10 @@ go tool cover -html=coverage.out
 - [ ] Implement role-based access control (Admin/User)
 - [ ] Add API documentation with Swagger
 - [ ] Add integration tests
-- [ ] Implement graceful shutdown
 - [ ] Add Docker support
 - [ ] CI/CD pipeline setup
+- [ ] Request timeout with context propagation
+- [ ] Distributed tracing
 
 ## 📝 License
 
