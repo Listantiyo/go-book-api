@@ -72,7 +72,7 @@ book-api/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/book-api.git
+git clone https://github.com/Listantiyo/go-book-api.git
 cd book-api
 ```
 
@@ -323,7 +323,7 @@ MIT License - feel free to use this project for learning or commercial purposes.
 
 ## 👤 Author
 
-Your Name - [GitHub](https://github.com/yourusername)
+Your Name - [GitHub](https://github.com/Listantiyo)
 
 ## 🙏 Acknowledgments
 
