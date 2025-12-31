@@ -34,6 +34,16 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user account
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "User registration details"
+// @Success 201 {object} utils.Response{data=models.User}
+// @Failure 400 {object} utils.Response
+// @Router /regiter [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -56,6 +66,17 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessResponse(w, http.StatusOK, "User registered successfully", user)
 }
 
+// Login godoc 
+// @Summary User login
+// @Description Login with email and passwod to get JWT Token
+// @Tags Authentication
+// @Accept json
+// Produce json
+// @Param request body LoginRequest true "User login credentials"
+// @Success 200 {object} utils.Response{data=LoginResponse}
+// @Failure 401 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /login [post] 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

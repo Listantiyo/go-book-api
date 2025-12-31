@@ -1,0 +1,592 @@
+basePath: /api/v1
+definitions:
+  handlers.BorrowBookRequest:
+    properties:
+      book_id:
+        minimum: 0
+        type: integer
+    required:
+    - book_id
+    type: object
+  handlers.CreateBookRequest:
+    properties:
+      author:
+        maxLength: 100
+        minLength: 1
+        type: string
+      description:
+        maxLength: 1000
+        type: string
+      isbn:
+        maxLength: 13
+        minLength: 10
+        type: string
+      stock:
+        minimum: 0
+        type: integer
+      title:
+        maxLength: 200
+        minLength: 1
+        type: string
+    required:
+    - author
+    - isbn
+    - title
+    type: object
+  handlers.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      password:
+        maxLength: 50
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  handlers.ReturnBookRequest:
+    properties:
+      borrow_id:
+        minimum: 0
+        type: integer
+    required:
+    - borrow_id
+    type: object
+  handlers.UpdateBookRequest:
+    properties:
+      author:
+        maxLength: 100
+        minLength: 1
+        type: string
+      description:
+        maxLength: 1000
+        type: string
+      isbn:
+        maxLength: 13
+        minLength: 10
+        type: string
+      stock:
+        minimum: 0
+        type: integer
+      title:
+        maxLength: 200
+        minLength: 1
+        type: string
+    required:
+    - author
+    - isbn
+    - title
+    type: object
+  models.Book:
+    properties:
+      author:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      isbn:
+        type: string
+      stock:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Borrow:
+    properties:
+      book:
+        $ref: '#/definitions/models.Book'
+      book_id:
+        type: integer
+      borrow_date:
+        type: string
+      created_at:
+        type: string
+      due_date:
+        type: string
+      id:
+        type: integer
+      return_date:
+        type: string
+      status:
+        $ref: '#/definitions/models.BorrowStatus'
+      updated_at:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Relations
+      user_id:
+        type: integer
+    type: object
+  models.BorrowStatus:
+    enum:
+    - borrowed
+    - returned
+    - overdue
+    type: string
+    x-enum-varnames:
+    - BorrowStatusBorrowed
+    - BorrowStatusReturned
+    - BorrowStatusOverdue
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  utils.PaginatedResponse:
+    properties:
+      data: {}
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  utils.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@bookapi.com
+    name: API Support
+  description: Type "Bearer" followed by space and JWT token.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Book API
+  version: "1.0"
+paths:
+  /books:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all books with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.PaginatedResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get all books
+      tags:
+      - Books
+    post:
+      consumes:
+      - application/json
+      description: Create a new book (requires authentication)
+      parameters:
+      - description: Book details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Book'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new book
+      tags:
+      - Books
+  /books/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a book (requires authentication)
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Book'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BeareAuth: []
+      summary: Delete a book
+      tags:
+      - Books
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific book
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Book'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get book by ID
+      tags:
+      - Books
+    put:
+      consumes:
+      - application/json
+      description: Update book information (requires authentication)
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update book details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Book'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a book
+      tags:
+      - Books
+  /borrows:
+    post:
+      consumes:
+      - application/json
+      description: Borrow a book (requires authentication, decreases stock)
+      parameters:
+      - description: Book ID to borrow
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BorrowBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Borrow'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BeareAuth: []
+      summary: Borrow a book
+      tags:
+      - Borrows
+  /borrows/me:
+    get:
+      consumes:
+      - application/json
+      description: Get current user`s a borrow history
+      parameters:
+      - description: Borrow ID to get
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Borrow'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BeareAuth: []
+      summary: Get a borrow history
+      tags:
+      - Borrows
+  /borrows/return:
+    post:
+      consumes:
+      - application/json
+      description: Return a borrowe book (requires authentication, increases stock)
+      parameters:
+      - description: Book ID to return
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ReturnBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Borrow'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BeareAuth: []
+      summary: Return a borrowed book
+      tags:
+      - Borrows
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and passwod to get JWT Token
+      parameters:
+      - description: User login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: User login
+      tags:
+      - Authentication
+  /regiter:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: User registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Register a new user
+      tags:
+      - Authentication
+swagger: "2.0"

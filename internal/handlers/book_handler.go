@@ -4,10 +4,12 @@ import (
 	"book-api/internal/services"
 	"book-api/internal/utils"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"gorm.io/gorm"
 )
 
 type BookHandler struct {
@@ -34,6 +36,18 @@ type UpdateBookRequest struct {
 	Stock int `json:"stock" validate:"gte=0"`
 }
 
+// CreateBook godoc
+// @Summary Create a new book
+// @Description Create a new book (requires authentication)
+// @Tags Books
+// @Accept json
+// @Produce json
+// @Security BearerAuth 
+// @Param request body CreateBookRequest true "Book details"
+// @Success 201 {object} utils.Response{data=models.Book}
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /books [post]
 func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	var req CreateBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -56,6 +70,18 @@ func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetAllBooks godoc
+// @Summary Get all books
+// @Description Get list of all books with pagination
+// @Tags Books
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1) 
+// @Param page_size query int false "Page size" default(10) 
+// @Success 200 {object} utils.Response{data=utils.PaginatedResponse}
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /books [get]
 func (h *BookHandler) GetAllBooks(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameter untuk pagination
 	pageStr := r.URL.Query().Get("page")
@@ -78,6 +104,10 @@ func (h *BookHandler) GetAllBooks(w http.ResponseWriter, r *http.Request) {
 
 	books, total, err := h.bookService.GetAllBooks(page, pageSize)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -102,6 +132,18 @@ func (h *BookHandler) GetAllBooks(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessResponse(w, http.StatusOK, "Books retrieved successfully", response)
 }
 
+// GetBookByID godoc
+// @Summary Get book by ID
+// @Description Get detailed information about a specific book 
+// @Tags Books
+// @Accept json
+// @Produce json
+// @Param id path int true "Book ID"
+// @Success 200 {object} utils.Response{data=models.Book}
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /books/{id} [get]
 func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 	// Ambil url param id - getbook/:id
 	idStr := chi.URLParam(r, "id")
@@ -114,6 +156,10 @@ func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 
 	book, err := h.bookService.GetBookByID(uint(id))
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -121,6 +167,19 @@ func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessResponse(w, http.StatusOK, "Book rretrieved successfully", book)
 }
 
+// UpdateBook godoc
+// @Summary Update a book 
+// @Description Update book information (requires authentication) 
+// @Tags Books
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Book ID"
+// @Param request body UpdateBookRequest true "Update book details"
+// @Success 200 {object} utils.Response{data=models.Book}
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /books/{id} [put]
 func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 
@@ -151,6 +210,19 @@ func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessResponse(w, http.StatusOK, "Book updated successfully", book)
 }
 
+// DeleteBook godoc
+// @Summary Delete a book
+// @Description Delete a book (requires authentication) 
+// @Tags Books
+// @Accept json
+// @Produce json
+// @Security BeareAuth
+// @Param id path int true "Book ID"
+// @Success 200 {object} utils.Response{data=models.Book}
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /books/{id} [delete]
 func (h *BookHandler) DeleteBook(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 
@@ -161,7 +233,12 @@ func (h *BookHandler) DeleteBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.bookService.DeleteBook(uint(id)); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
 		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	utils.SuccessResponse(w, http.StatusOK, "Book deleted successfully", nil)

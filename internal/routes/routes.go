@@ -6,8 +6,11 @@ import (
 	"book-api/internal/handlers"
 	"book-api/internal/middlewares"
 
+	_ "book-api/docs"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func SetupRoutes(authHandler *handlers.AuthHandler, bookHandler *handlers.BookHandler, borrowHandler *handlers.BorrowHandler, jwtSecret string) *chi.Mux {
@@ -25,6 +28,10 @@ func SetupRoutes(authHandler *handlers.AuthHandler, bookHandler *handlers.BookHa
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+	))
 
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {

@@ -19,6 +19,25 @@ import (
 	"book-api/internal/services"
 )
 
+// @title Book API
+// @version 1.0
+// @description A product-ready REST API for managing books and book borrowing system
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@bookapi.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinition.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by space and JWT token.
+
 func main() {
 	// Load config
 	cfg := config.LoadConfig()
@@ -40,6 +59,7 @@ func main() {
 	bookRepo 	:= repository.NewBookRepository(db)
 	borrowRepo 	:= repository.NewBorrowRepository(db)
 
+	// Initialize transaction manager
 	txManager	:= database.NewTransactionManager(db)
 
 	// Initialize services
