@@ -8,4 +8,4 @@
 # DB_NAME=book_api
 # DB_SSLMODE=disable
 
-# JWT_SECRET=secret
+# JWT_SECRET=your-super-secret-key-change-this
