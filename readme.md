@@ -390,7 +390,7 @@ MIT License - feel free to use this project for learning or commercial purposes.
 
 ## 👤 Author
 
-Your Name - [GitHub](https://github.com/Listantiyo)
+Listantiyo - [GitHub](https://github.com/Listantiyo)
 
 ## 🙏 Acknowledgments
 
